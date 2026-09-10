@@ -9,7 +9,7 @@
     "dev": "nodemon --watch index.js --watch db.js --watch services --watch views --watch public index.js",
     "lint": "eslint .",
     "test": "npm run test:unit",
-    "test:unit": "node --test test/unit/*.test.js",
+    "test:unit": "node --experimental-test-module-mocks --test test/unit/*.test.js",
     "test:integration": "node --test --test-concurrency=1 test/integration/*.test.js",
     "test:coverage": "node --test --test-concurrency=1 --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=70 --test-coverage-functions=80 test/unit/*.test.js test/integration/*.test.js",
     "test:container": "docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from tests",
