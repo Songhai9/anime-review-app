@@ -1,0 +1,85 @@
+<%- include("partials/header.ejs") %>
+
+<% if (!currentReader) { %>
+  <section class="empty-state">
+    <p class="eyebrow">Welcome to Anime & Manga Notes</p>
+    <h1>Create your first reader.</h1>
+    <p>Each reader gets a personal collection, ratings, and reviews.</p>
+    <a class="button" href="/readers/new">Add a reader</a>
+  </section>
+<% } else { %>
+  <div class="reader-library" style="--reader-color: <%= currentReader.color %>">
+    <nav class="reader-switcher" aria-label="Choose a reader">
+      <% readers.forEach((reader) => { %>
+        <a
+          class="reader-chip <%= reader.id === currentReader.id ? 'is-active' : '' %>"
+          href="/?reader=<%= reader.id %>&sort=<%= currentSort %>"
+          style="--profile-color: <%= reader.color %>"
+          <% if (reader.id === currentReader.id) { %>aria-current="page"<% } %>
+        >
+          <span class="reader-dot" aria-hidden="true"></span>
+          <%= reader.name %>
+        </a>
+      <% }) %>
+      <a class="reader-chip add-reader" href="/readers/new">+ Add reader</a>
+    </nav>
+
+    <section class="library-heading">
+      <div>
+        <p class="eyebrow"><%= entries.length %> review<%= entries.length === 1 ? '' : 's' %></p>
+        <h1><%= currentReader.name %>'s library</h1>
+        <a class="button add-book-button" href="/media/new?reader=<%= currentReader.id %>">Add anime or manga</a>
+      </div>
+
+      <form class="sort-form" action="/" method="get">
+        <input type="hidden" name="reader" value="<%= currentReader.id %>">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort" onchange="this.form.submit()">
+          <option value="rating" <%= currentSort === 'rating' ? 'selected' : '' %>>Highest rated</option>
+          <option value="title" <%= currentSort === 'title' ? 'selected' : '' %>>Title</option>
+        </select>
+      </form>
+    </section>
+
+    <% if (entries.length === 0) { %>
+      <section class="empty-state compact">
+        <h2>No reviews yet</h2>
+        <p><%= currentReader.name %>'s first anime or manga review will appear here.</p>
+      </section>
+    <% } else { %>
+      <section class="book-list" aria-label="Reviews by <%= currentReader.name %>">
+        <% entries.forEach((entry) => { %>
+          <article class="book-card">
+            <div class="cover-frame">
+              <% if (entry.cover_url) { %>
+                <img src="<%= entry.cover_url %>" alt="Cover of <%= entry.title %>">
+              <% } else { %>
+                <div class="cover-placeholder">No cover</div>
+              <% } %>
+            </div>
+
+            <div class="book-content">
+              <div class="book-meta">
+                <span class="rating"><%= entry.rating %>/10</span>
+                <span><%= entry.media_type %></span>
+              </div>
+
+              <h2><%= entry.title %></h2>
+
+              <% if (entry.media_type === 'ANIME' && entry.studio) { %>
+                <p class="author">Studio: <%= entry.studio %></p>
+              <% } else if (entry.author) { %>
+                <p class="author">Author: <%= entry.author %></p>
+              <% } %>
+
+              <p class="notes"><%= entry.review %></p>
+              <a class="book-link" href="/readers/<%= currentReader.id %>/media/<%= entry.entry_id %>">View review and actions</a>
+            </div>
+          </article>
+        <% }) %>
+      </section>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include("partials/footer.ejs") %>

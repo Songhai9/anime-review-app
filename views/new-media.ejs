@@ -1,0 +1,163 @@
+<%- include("partials/header.ejs") %>
+
+<section class="form-page wide" style="--reader-color: <%= reader.color %>">
+  <p class="eyebrow" style="color: var(--reader-color)"><%= reader.name %>'s library</p>
+  <h1>Add anime or manga</h1>
+
+  <form class="media-search-form" action="/media/new" method="get">
+    <input type="hidden" name="reader" value="<%= reader.id %>">
+
+    <div class="split-fields">
+      <div>
+        <label for="type">What are you looking for?</label>
+        <select id="type" name="type" required>
+          <option value="ANIME" <%= mediaType === 'ANIME' ? 'selected' : '' %>>Anime</option>
+          <option value="MANGA" <%= mediaType === 'MANGA' ? 'selected' : '' %>>Manga</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="q">Title</label>
+        <input
+          id="q"
+          name="q"
+          type="search"
+          value="<%= query %>"
+          maxlength="120"
+          placeholder="Naruto"
+          required
+          autofocus
+        >
+      </div>
+    </div>
+
+    <button class="button" type="submit">Search AniList</button>
+  </form>
+
+  <% if (searchError) { %>
+    <p class="form-error" role="alert"><%= searchError %></p>
+  <% } %>
+
+  <% if (query && !searchError) { %>
+    <section class="search-results" aria-label="Search results">
+      <div class="search-results-heading">
+        <div>
+          <p class="eyebrow">AniList results</p>
+          <h2>
+            <%= results.length %>
+            result<%= results.length === 1 ? '' : 's' %>
+            for “<%= query %>”
+          </h2>
+        </div>
+
+        <% if (results.length > 1) { %>
+          <p class="carousel-hint">Scroll horizontally to see more →</p>
+        <% } %>
+      </div>
+
+      <% if (results.length === 0) { %>
+        <p>No matching <%= mediaType.toLowerCase() %> was found.</p>
+      <% } else { %>
+        <div class="media-carousel-shell" data-carousel-shell>
+          <button
+            class="carousel-control is-prev"
+            type="button"
+            aria-label="Scroll search results left"
+            aria-controls="media-carousel"
+            data-carousel-prev
+          >
+            <span aria-hidden="true">&#8592;</span>
+          </button>
+
+          <div class="media-carousel" id="media-carousel" aria-label="Matching titles">
+            <% results.forEach((item) => { %>
+              <a
+                class="media-result-card"
+                href="/media/review?reader=<%= reader.id %>&type=<%= item.mediaType %>&id=<%= item.anilistId %>"
+              >
+                <div class="media-result-cover">
+                  <% if (item.coverUrl) { %>
+                    <img
+                      src="<%= item.coverUrl %>"
+                      alt="Cover of <%= item.title %>"
+                      loading="lazy"
+                    >
+                  <% } else { %>
+                    <div class="cover-placeholder">No cover</div>
+                  <% } %>
+                </div>
+
+                <div class="media-result-info">
+                  <strong><%= item.title %></strong>
+
+                  <% if (item.creator) { %>
+                    <span><%= item.creatorLabel %>: <%= item.creator %></span>
+                  <% } %>
+
+                  <span class="media-type-badge"><%= item.mediaType === 'ANIME' ? 'Anime' : 'Manga' %></span>
+                </div>
+              </a>
+            <% }) %>
+          </div>
+
+          <button
+            class="carousel-control is-next"
+            type="button"
+            aria-label="Scroll search results right"
+            aria-controls="media-carousel"
+            data-carousel-next
+          >
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
+      <% } %>
+    </section>
+  <% } %>
+
+  <p class="return-link">
+    <a class="text-link" href="/?reader=<%= reader.id %>">
+      Return to <%= reader.name %>'s library
+    </a>
+  </p>
+</section>
+
+<script>
+  (() => {
+    const carouselShell = document.querySelector("[data-carousel-shell]");
+    if (!carouselShell) return;
+
+    const track = carouselShell.querySelector(".media-carousel");
+    const prevButton = carouselShell.querySelector("[data-carousel-prev]");
+    const nextButton = carouselShell.querySelector("[data-carousel-next]");
+
+    if (!track || !prevButton || !nextButton) return;
+
+    const getStep = () => Math.max(track.clientWidth * 0.85, 180);
+
+    const updateButtons = () => {
+      const maxScrollLeft = track.scrollWidth - track.clientWidth;
+      const canScroll = maxScrollLeft > 4;
+
+      prevButton.hidden = !canScroll;
+      nextButton.hidden = !canScroll;
+
+      prevButton.disabled = track.scrollLeft <= 4;
+      nextButton.disabled = track.scrollLeft >= maxScrollLeft - 4;
+    };
+
+    prevButton.addEventListener("click", () => {
+      track.scrollBy({ left: -getStep(), behavior: "smooth" });
+    });
+
+    nextButton.addEventListener("click", () => {
+      track.scrollBy({ left: getStep(), behavior: "smooth" });
+    });
+
+    track.addEventListener("scroll", updateButtons, { passive: true });
+    window.addEventListener("resize", updateButtons);
+
+    updateButtons();
+  })();
+</script>
+
+<%- include("partials/footer.ejs") %>

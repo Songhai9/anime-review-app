@@ -1,0 +1,44 @@
+<%- include("partials/header.ejs") %>
+
+<section class="form-page wide" style="--reader-color: <%= reader.color %>">
+  <p class="eyebrow" style="color: var(--reader-color)"><%= media.mediaType %> · <%= reader.name %>'s library</p>
+
+  <div class="edit-book-summary">
+    <% if (media.coverUrl) { %>
+      <img src="<%= media.coverUrl %>" alt="Cover of <%= media.title %>">
+    <% } %>
+
+    <div>
+      <h1><%= media.title %></h1>
+      <% if (media.creator) { %>
+        <p class="author"><%= media.creatorLabel %>: <%= media.creator %></p>
+      <% } %>
+      <% if (media.synopsis) { %>
+        <p><%= media.synopsis %></p>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (formError) { %>
+    <p class="form-error" role="alert"><%= formError %></p>
+  <% } %>
+
+  <form class="book-fields" action="/media" method="post">
+    <input type="hidden" name="readerId" value="<%= reader.id %>">
+    <input type="hidden" name="anilistId" value="<%= media.anilistId %>">
+    <input type="hidden" name="mediaType" value="<%= media.mediaType %>">
+
+    <label for="rating">Rating out of 10</label>
+    <input id="rating" name="rating" type="number" min="1" max="10" value="<%= values.rating %>" required>
+
+    <label for="review">Your review</label>
+    <textarea id="review" name="review" rows="10" required><%= values.review %></textarea>
+
+    <div class="form-actions">
+      <button class="button" type="submit">Add review</button>
+      <a class="text-link" href="/media/new?reader=<%= reader.id %>">Back to search</a>
+    </div>
+  </form>
+</section>
+
+<%- include("partials/footer.ejs") %>

@@ -1,0 +1,56 @@
+<%- include("partials/header.ejs") %>
+
+<article class="book-detail" style="--reader-color: <%= entry.reader_color %>">
+  <div class="detail-cover">
+    <% if (entry.cover_url) { %>
+      <img src="<%= entry.cover_url %>" alt="Cover of <%= entry.title %>">
+    <% } else { %>
+      <div class="cover-placeholder">No cover</div>
+    <% } %>
+  </div>
+
+  <div class="detail-content">
+    <p class="eyebrow" style="color: var(--reader-color)"><%= entry.media_type %> · <%= entry.reader_name %>'s library</p>
+    <h1><%= entry.title %></h1>
+
+    <% if (entry.media_type === 'ANIME' && entry.studio) { %>
+      <p class="detail-author">Studio: <%= entry.studio %></p>
+    <% } else if (entry.author) { %>
+      <p class="detail-author">Author: <%= entry.author %></p>
+    <% } %>
+
+    <div class="detail-meta">
+      <span class="rating"><%= entry.rating %>/10</span>
+    </div>
+
+    <% if (entry.synopsis) { %>
+      <section class="detail-notes">
+        <h2>Synopsis</h2>
+        <p><%= entry.synopsis %></p>
+      </section>
+    <% } %>
+
+    <section class="detail-notes">
+      <h2>Review</h2>
+      <p><%= entry.review %></p>
+    </section>
+
+    <p class="external-link">
+      <a href="https://anilist.co/<%= entry.media_type.toLowerCase() %>/<%= entry.anilist_id %>" rel="noreferrer">View on AniList</a>
+    </p>
+
+    <div class="entry-actions">
+      <a class="button" href="/readers/<%= entry.reader_id %>/media/<%= entry.entry_id %>/edit">Edit review</a>
+      <a class="text-link" href="/?reader=<%= entry.reader_id %>">Back to library</a>
+      <form
+        action="/readers/<%= entry.reader_id %>/media/<%= entry.entry_id %>/delete"
+        method="post"
+        onsubmit="return confirm('Remove this review from the selected library?')"
+      >
+        <button class="danger-button" type="submit">Delete review</button>
+      </form>
+    </div>
+  </div>
+</article>
+
+<%- include("partials/footer.ejs") %>

@@ -1,0 +1,26 @@
+<%- include("partials/header.ejs") %>
+
+<section class="form-page">
+  <p class="eyebrow">Reader profile</p>
+  <h1>Add a reader</h1>
+  <p>Create a profile for someone who wants to review anime and manga.</p>
+
+  <% if (errorMessage) { %>
+    <p class="form-error" role="alert"><%= errorMessage %></p>
+  <% } %>
+
+  <form class="reader-form" action="/readers" method="post">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" maxlength="80" value="<%= values.name %>" autocomplete="off" required autofocus>
+
+    <label for="color">Profile color</label>
+    <input id="color" name="color" type="color" value="<%= values.color %>" required>
+
+    <div class="form-actions">
+      <button class="button" type="submit">Create reader</button>
+      <a class="text-link" href="/">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<%- include("partials/footer.ejs") %>

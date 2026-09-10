@@ -1,0 +1,39 @@
+<%- include("partials/header.ejs") %>
+
+<section class="form-page wide" style="--reader-color: <%= entry.reader_color %>">
+  <p class="eyebrow" style="color: var(--reader-color)"><%= entry.reader_name %>'s library</p>
+  <h1>Edit your review</h1>
+
+  <div class="edit-book-summary">
+    <% if (entry.cover_url) { %>
+      <img src="<%= entry.cover_url %>" alt="Cover of <%= entry.title %>">
+    <% } %>
+    <div>
+      <h2><%= entry.title %></h2>
+      <p class="field-help">AniList metadata is shared catalog information and is not edited here.</p>
+    </div>
+  </div>
+
+  <% if (formError) { %>
+    <p class="form-error" role="alert"><%= formError %></p>
+  <% } %>
+
+  <form
+    class="book-fields edit-entry-form"
+    action="/readers/<%= entry.reader_id %>/media/<%= entry.entry_id %>/update"
+    method="post"
+  >
+    <label for="rating">Rating out of 10</label>
+    <input id="rating" name="rating" type="number" min="1" max="10" value="<%= values.rating %>" required>
+
+    <label for="review">Review</label>
+    <textarea id="review" name="review" rows="10" required><%= values.review %></textarea>
+
+    <div class="form-actions">
+      <button class="button" type="submit">Save changes</button>
+      <a class="text-link" href="/readers/<%= entry.reader_id %>/media/<%= entry.entry_id %>">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<%- include("partials/footer.ejs") %>

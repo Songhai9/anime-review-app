@@ -1,0 +1,10 @@
+<%- include("partials/header.ejs") %>
+
+<section class="error-page">
+  <p class="eyebrow">Error <%= statusCode %></p>
+  <h1><%= pageTitle %></h1>
+  <p><%= message %></p>
+  <a href="/">Return to Anime & Manga Notes</a>
+</section>
+
+<%- include("partials/footer.ejs") %>
