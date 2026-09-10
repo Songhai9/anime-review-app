@@ -183,7 +183,7 @@ app.post("/readers", async (req, res, next) => {
 });
 
 // Search page: choose ANIME/MANGA, enter a title, then show AniList results.
-app.get("/media/new", async (req, res, next) => {
+app.get("/media/new", async (req, res, _next) => {
   const readerId = parsePositiveInt(req.query.reader);
   const reader = await getReader(readerId);
 
