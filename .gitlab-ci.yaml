@@ -1,0 +1,32 @@
+default:
+  image: node:24-slim
+
+workflow:
+  name: Basic pipeline
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - quality
+  - test
+
+linting_job:
+  stage: quality
+  before_script:
+    - npm ci
+  script:
+    - npm run lint
+
+unit_testing_job:
+  stage: test
+  before_script:
+    - npm ci
+  script:
+    - npm run test:unit
+
+coverage_testing_job:
+  stage: test
+  before_script:
+    - npm ci
+  script:
+    - npm run test:coverage
