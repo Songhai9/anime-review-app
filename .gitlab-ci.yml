@@ -9,6 +9,7 @@ workflow:
 stages:
   - quality
   - test
+  - build
 
 linting_job:
   stage: quality
@@ -56,3 +57,12 @@ integration_testing_job:
   - psql -h "$DATABASE_HOST" -U "$DATABASE_USER" -p "$DATABASE_PORT" -d "$DATABASE_NAME" -f sql/schema.sql
   script:
   - npm run test:integration
+
+building_job:
+  stage: build
+  image: docker:24.0.5-cli
+  services:
+  - name: docker:24.0.5-dind
+    alias: docker
+  script:
+  - docker build -t "manga-app:$CI_COMMIT_SHORT_SHA" .
