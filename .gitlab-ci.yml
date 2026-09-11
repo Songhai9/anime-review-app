@@ -42,6 +42,7 @@ integration_testing_job:
     DATABASE_NAME: medias_test
     DATABASE_USER: postgres
     DATABASE_PASSWORD: test_password
+    TEST_DATABASE_URL: "postgresql://$DATABASE_USER:$DATABASE_PASSWORD@$DATABASE_HOST:$DATABASE_PORT/$DATABASE_NAME"
 
     POSTGRES_DB: medias_test
     POSTGRES_USER: postgres
