@@ -30,3 +30,28 @@ coverage_testing_job:
     - npm ci
   script:
     - npm run test:coverage
+
+integration_testing_job:
+  stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+  variables:
+    DATABASE_HOST: postgres
+    DATABASE_PORT: 5432
+    DATABASE_NAME: medias_test
+    DATABASE_USER: postgres
+    DATABASE_PASSWORD: test_password
+
+    POSTGRES_DB: medias_test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: test_password
+    PGPASSWORD: test_password
+  before_script:
+  - npm ci
+  - apt-get update
+  - apt-get install -y postgresql-client
+  - until pg_isready -h "$DATABASE_HOST" -U "$DATABASE_USER" -d "$DATABASE_NAME"; do sleep 2; done
+  - psql -h "$DATABASE_HOST" -U "$DATABASE_USER" -p "$DATABASE_PORT" -d "$DATABASE_NAME" -f sql/schema.sql
+  script:
+  - npm run test:integration
