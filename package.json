@@ -1,33 +1,31 @@
 {
   "name": "book-notes",
   "version": "1.0.1",
-  "description": "A simple book notes application for an end-to-end DevOps portfolio.",
+  "description": "A three-tier anime and manga notes application.",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon --watch index.js --watch db.js --watch services --watch views --watch public index.js",
+    "start": "npm run start:frontend",
+    "start:frontend": "node frontend/server.js",
+    "start:api": "node api/server.js",
+    "dev": "npm run dev:frontend",
+    "dev:frontend": "nodemon --watch frontend --watch views --watch public frontend/server.js",
+    "dev:api": "nodemon --watch api api/server.js",
     "lint": "eslint .",
     "test": "npm run test:unit",
     "test:unit": "node --experimental-test-module-mocks --test test/unit/*.test.js",
     "test:integration": "node --test --test-concurrency=1 test/integration/*.test.js",
-    "test:coverage": "node --experimental-test-module-mocks --test --test-concurrency=1 --experimental-test-coverage --test-coverage-lines=50 --test-coverage-branches=70 --test-coverage-functions=60 test/unit/*.test.js test/integration/*.test.js",
+    "test:coverage": "node --experimental-test-module-mocks --test --test-concurrency=1 --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=60 --test-coverage-functions=75 test/unit/*.test.js test/integration/*.test.js",
     "test:container": "docker compose -f compose.test.yml up --build --abort-on-container-exit --exit-code-from tests",
     "test:container:down": "docker compose -f compose.test.yml down --volumes",
-    "docker:build": "docker build --tag book-notes:local .",
+    "docker:build": "docker build --target api-runtime --tag manga-api:local . && docker build --target frontend-runtime --tag manga-frontend:local .",
     "compose:up": "docker compose up --build --detach",
     "compose:down": "docker compose down",
     "compose:logs": "docker compose logs --follow"
   },
-  "keywords": [
-    "express",
-    "postgresql",
-    "devops"
-  ],
+  "keywords": ["express", "postgresql", "three-tier", "devops"],
   "license": "MIT",
-  "engines": {
-    "node": ">=24"
-  },
+  "engines": { "node": ">=24" },
   "dependencies": {
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",

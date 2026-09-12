@@ -13,8 +13,8 @@ describe("PostgreSQL application integration", { skip: !testDatabaseUrl }, () =>
     process.env.DATABASE_URL = testDatabaseUrl;
     process.env.DATABASE_SSL = "false";
 
-    ({ db } = await import("../../db.js"));
-    ({ app } = await import("../../index.js"));
+    ({ db } = await import("../../api/db.js"));
+    ({ app } = await import("../../api/app.js"));
 
     const schemaUrl = new URL("../../sql/schema.sql", import.meta.url);
     const schema = await readFile(schemaUrl, "utf8");
@@ -45,11 +45,10 @@ describe("PostgreSQL application integration", { skip: !testDatabaseUrl }, () =>
 
   test("creating a reader persists it and enforces unique names", async () => {
     const created = await request(app)
-      .post("/readers")
-      .type("form")
+      .post("/api/readers")
       .send({ name: "New Reader", color: "#abcdef" });
 
-    assert.equal(created.status, 302);
+    assert.equal(created.status, 201);
 
     const result = await db.query(
       "SELECT name, color FROM readers WHERE name = $1",
@@ -58,12 +57,11 @@ describe("PostgreSQL application integration", { skip: !testDatabaseUrl }, () =>
     assert.deepEqual(result.rows, [{ name: "New Reader", color: "#abcdef" }]);
 
     const duplicate = await request(app)
-      .post("/readers")
-      .type("form")
+      .post("/api/readers")
       .send({ name: "New Reader", color: "#123456" });
 
     assert.equal(duplicate.status, 409);
-    assert.match(duplicate.text, /already exists/);
+    assert.match(duplicate.body.message, /already exists/);
   });
 
   test("the library page renders reviews loaded through the real joins", async () => {
@@ -84,12 +82,12 @@ describe("PostgreSQL application integration", { skip: !testDatabaseUrl }, () =>
     );
 
     const response = await request(app).get(
-      `/?reader=${readerResult.rows[0].id}&sort=rating`,
+      `/api/readers/${readerResult.rows[0].id}/library?sort=rating`,
     );
 
     assert.equal(response.status, 200);
-    assert.match(response.text, /Integration Manga/);
-    assert.match(response.text, /9\/10/);
+    assert.equal(response.body.entries[0].title, "Integration Manga");
+    assert.equal(response.body.entries[0].rating, 9);
   });
 
   test("updating and deleting a review changes the database", async () => {
@@ -112,22 +110,21 @@ describe("PostgreSQL application integration", { skip: !testDatabaseUrl }, () =>
     const entryId = entryResult.rows[0].id;
 
     const updated = await request(app)
-      .post(`/readers/${readerId}/media/${entryId}/update`)
-      .type("form")
+      .put(`/api/readers/${readerId}/media/${entryId}`)
       .send({ rating: "8", review: "Updated review" });
 
-    assert.equal(updated.status, 302);
+    assert.equal(updated.status, 200);
     const saved = await db.query(
       "SELECT rating, review FROM reader_media WHERE id = $1",
       [entryId],
     );
     assert.deepEqual(saved.rows, [{ rating: 8, review: "Updated review" }]);
 
-    const deleted = await request(app).post(
-      `/readers/${readerId}/media/${entryId}/delete`,
+    const deleted = await request(app).delete(
+      `/api/readers/${readerId}/media/${entryId}`,
     );
 
-    assert.equal(deleted.status, 302);
+    assert.equal(deleted.status, 204);
     const remainingEntries = await db.query(
       "SELECT id FROM reader_media WHERE id = $1",
       [entryId],

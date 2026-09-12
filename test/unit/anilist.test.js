@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, test } from "node:test";
-import { getMediaById, searchMedia } from "../../services/anilist.js";
+import { getMediaById, searchMedia } from "../../api/services/anilist.js";
 
 const originalFetch = globalThis.fetch;
 
