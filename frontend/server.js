@@ -1,7 +1,7 @@
 import { pathToFileURL } from "node:url";
 import { app } from "./app.js";
 
-const port = Number(process.env.FRONTEND_PORT || process.env.PORT) || 3000;
+const port = Number(process.env.FRONTEND_PORT) || 3000;
 
 export function startFrontendServer() {
   return app.listen(port, () => {

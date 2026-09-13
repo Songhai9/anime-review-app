@@ -28,6 +28,7 @@ services:
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_SSL: "false"
+      DATABASE_SEED: "true"
     depends_on:
       db:
         condition: service_healthy

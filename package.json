@@ -20,6 +20,7 @@
     "test:container:down": "docker compose -f compose.test.yml down --volumes",
     "docker:build": "docker build --target api-runtime --tag manga-api:local . && docker build --target frontend-runtime --tag manga-frontend:local .",
     "compose:up": "docker compose up --build --detach",
+    "compose:db": "docker compose up --detach db",
     "compose:down": "docker compose down",
     "compose:logs": "docker compose logs --follow"
   },

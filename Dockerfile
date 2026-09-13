@@ -13,6 +13,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY api ./api
+COPY sql ./sql
 USER node
 EXPOSE 3001
 CMD ["node", "api/server.js"]

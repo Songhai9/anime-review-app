@@ -11,11 +11,14 @@ The application is split into three independently deployable tiers:
 Run the API and frontend in separate terminals:
 
 ```sh
+npm run compose:db
 npm run dev:api
 npm run dev:frontend
 ```
 
-The defaults are `http://localhost:3001` for the API and `http://localhost:3000` for the frontend. Override them with `API_PORT`, `FRONTEND_PORT`, and `API_URL`.
+`compose:db` starts PostgreSQL for local development. The defaults are `http://localhost:3001` for the API and `http://localhost:3000` for the frontend. Override them with `API_PORT`, `FRONTEND_PORT`, and `API_URL`.
+
+The API applies the idempotent schema at startup, including when the PostgreSQL volume already exists. Set `DATABASE_SEED=true` to insert the demo readers.
 
 ## Containers
 
