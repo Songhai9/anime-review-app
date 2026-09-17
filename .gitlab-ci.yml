@@ -2,7 +2,7 @@ default:
   image: node:24-slim
 
 workflow:
-  name: Basic pipeline
+  name: Dockerize app
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
@@ -85,5 +85,7 @@ building_job:
     alias: docker
   script:
   - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
-  - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" .
-  - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+  - docker build --target api-runtime -t "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA" .
+  - docker build --target frontend-runtime -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA" .
+  - docker push "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA"
+  - docker push "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA"
