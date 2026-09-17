@@ -85,6 +85,10 @@ building_job:
     alias: docker
   script:
   - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+  - docker run --privileged --rm tonistiigi/binfmt --install all
+  - docker buildx create --use
+  - docker buildx inspect --bootstrap
+  
   - docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --target api-runtime \
@@ -98,6 +102,3 @@ building_job:
     -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA" \
     --push \
     .
-    
-  - docker push "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA"
-  - docker push "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA"
