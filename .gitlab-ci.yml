@@ -85,7 +85,19 @@ building_job:
     alias: docker
   script:
   - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
-  - docker build --target api-runtime -t "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA" .
-  - docker build --target frontend-runtime -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA" .
+  - docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    --target api-runtime \
+    -t "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA" \
+    --push \
+    .
+
+  - docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    --target frontend-runtime \
+    -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA" \
+    --push \
+    .
+    
   - docker push "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA"
   - docker push "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA"
