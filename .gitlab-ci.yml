@@ -10,6 +10,7 @@ stages:
   - quality
   - test
   - build
+  - deploy
 
 linting_job:
   stage: quality
@@ -80,7 +81,7 @@ coverage_testing_job:
 building_job:
   stage: build
   image: docker:24.0.5-cli
-  
+
   variables:
     BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
 
@@ -110,3 +111,14 @@ building_job:
         -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA" \
         --push \
         .
+
+trigger_infra:
+  stage: deploy
+
+  trigger:
+    project: anilist-cicd/anilist-infra
+    branch: main
+    strategy: depend
+
+  variables:
+    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
