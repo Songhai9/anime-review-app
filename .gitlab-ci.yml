@@ -80,6 +80,9 @@ coverage_testing_job:
 building_job:
   stage: build
   image: docker:24.0.5-cli
+  
+  variables:
+    BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
 
   services:
     - name: docker:24.0.5-dind
