@@ -112,13 +112,15 @@ building_job:
         --push \
         .
 
-trigger_infra:
+trigger_k8s:
   stage: deploy
 
   trigger:
-    project: anilist-cicd/anilist-infra
+    project: anilist-cicd/anilist-k8s
     branch: main
     strategy: depend
 
   variables:
     IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+    BACKEND_IMAGE: "$CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA"
+    FRONTEND_IMAGE: "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA"
