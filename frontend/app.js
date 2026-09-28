@@ -50,7 +50,7 @@ app.get("/", async (req, res, next) => {
     const currentSort = req.query.sort === "title" ? "title" : "rating";
     const library = await api.getLibrary(currentReader.id, currentSort);
     res.render("index.ejs", {
-      pageTitle: `${currentReader.name}'s Animes & Manga Notes`,
+      pageTitle: `${currentReader.name}'s Anime & Manga Notes`,
       readers,
       currentReader,
       entries: library.entries,
