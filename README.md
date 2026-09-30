@@ -2,7 +2,7 @@
 
 A personal anime and manga library featuring AniList search, reader profiles, media lists, ratings and reviews. The project also provides a DevOps learning path, from Docker Compose to Kubernetes on AWS.
 
-![Kubernetes architecture](docs/assets/03-kubernetes.png)
+![Kubernetes architecture](docs/assets/AWS-NLB.png)
 
 ## Documentation
 
