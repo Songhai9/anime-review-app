@@ -1,62 +1,73 @@
-# Phase 2 · deliver the application to AWS VMs
+# Phase 2 · Delivering the application to AWS virtual machines
 
-[Home](../../README.md) · [Historical pipelines](../../docs/ci-history/README.md)
+[← Current delivery (phase 3)](../../README.md) · [Phase 1 · local](../local/README.md) · [Recovered pipelines](../../docs/ci-history/README.md)
 
-![VM architecture](../../docs/assets/02-vm.png)
+The application moves to four ARM64 EC2 instances built by [anime-review-infra](https://github.com/Songhai9/anime-review-infra). This phase had two steps:
 
-## Two steps within the VM phase
+1. **2a · Native Node.js** — Ansible clones this repository on the VMs and runs it with systemd ([infra › legacy/local](https://github.com/Songhai9/anime-review-infra/tree/main/legacy/local)). Nothing changes in this repo.
+2. **2b · Container images** — this pipeline builds two multi-arch images and **triggers the infrastructure pipeline** with the tag; Ansible runs the images on the VMs ([infra › legacy/vm](https://github.com/Songhai9/anime-review-infra/tree/main/legacy/vm)).
 
-1. **Native Node.js**: the infra repository's `legacy/local` playbooks clone the code onto VMs and create systemd services. “Local” refers to the workstation running Ansible; the target machines are in AWS.
-2. **Frontend/API containers**: CI publishes two images; Ansible under `legacy/vm/ansible` runs them with Docker. PostgreSQL remains installed natively on its own VM.
+![Phase 2b · containers on AWS VMs](../../docs/assets/02-vm-docker.png)
 
-The complete Terraform, network, Vault and Ansible procedure is in the infra package's `docs/phases/02-vm/` README. This application repository supplies code, tests and images; it does not create buckets or instances.
+<details>
+<summary><b>Detailed view</b> (every component, port and job)</summary>
 
-## Prepare images
+![Phase 2b · containers on AWS VMs · detailed](../../docs/assets/02-vm-docker-detailed.png)
 
-The GitLab project needs an enabled Container Registry and a runner that supports Docker-in-Docker and the privileged container used by `tonistiigi/binfmt`. The runner must reach Docker Hub and GitLab. DinD TLS configuration belongs to the runner setup; the historical pipeline does not provide a universal configuration for it.
+</details>
 
-Required targets are `api-runtime` and `frontend-runtime`. The `t4g` VMs are ARM64: publishing AMD64-only images causes an architecture mismatch. Multiarchitecture images also support x86 development machines.
+## Implemented DevOps features (app side)
 
-To publish manually, first authenticate to the registry with an account allowed to push:
-
-```bash
-export REGISTRY_PREFIX='registry.gitlab.com/YOUR_GROUP/YOUR_PROJECT'
-export IMAGE_TAG="$(git rev-parse --short=8 HEAD)"
-docker buildx create --name manga-builder --use
-# If the builder already exists: docker buildx use manga-builder
-docker buildx inspect --bootstrap
-docker buildx build --platform linux/amd64,linux/arm64 \
-  --target api-runtime --tag "$REGISTRY_PREFIX/backend:$IMAGE_TAG" --push .
-docker buildx build --platform linux/amd64,linux/arm64 \
-  --target frontend-runtime --tag "$REGISTRY_PREFIX/frontend:$IMAGE_TAG" --push .
-docker buildx imagetools inspect "$REGISTRY_PREFIX/backend:$IMAGE_TAG"
-docker buildx imagetools inspect "$REGISTRY_PREFIX/frontend:$IMAGE_TAG"
-```
-
-On a Linux engine without configured emulation, the pipeline's `binfmt` step is required. Docker Desktop support depends on its installation. Inspection should show both platforms. The tag provides traceability by convention, not registry-enforced immutability; do not overwrite a delivered tag.
-
-## Historical VM trigger
-
-The [September 18 pipeline](../../docs/ci-history/phase2-vm.gitlab-ci.yml) triggers `anilist-cicd/anilist-infra` on `main`, uses `strategy: depend`, and passes `IMAGE_TAG`. This version does not pass the registry prefix: the infra repository's Ansible variables supply it. It must point to the actual application registry.
-
-Before enabling this pipeline, also restore the infra repository's VM pipeline or select its historical configuration path in GitLab. The current active infra pipeline configures Kubernetes; sending it an image tag does not restore VM deployment.
-
-In the GitLab infra project, allow the application project under **Settings → CI/CD → Job token permissions**, and check the triggering user's permissions in the target project. Protected-variable availability must match `main` protection. The supplied `trigger: project` does not consume a personal trigger token.
+| Area | What was implemented |
+|---|---|
+| Two images | `docker buildx --target api-runtime` → `…/backend:<sha>` and `--target frontend-runtime` → `…/frontend:<sha>` |
+| Multi-architecture | QEMU via `tonistiigi/binfmt`, `--platform linux/amd64,linux/arm64`: the same tag runs on Graviton VMs and x86 laptops |
+| Registry | GitLab Container Registry, authenticated with the built-in `CI_REGISTRY_*` variables |
+| Build workaround | `BUILDX_NO_DEFAULT_ATTESTATIONS=1` so the registry does not list `unknown/unknown` provenance manifests |
+| Continuous delivery | `trigger_infra`: multi-project pipeline to `anilist-cicd/anilist-infra` on `main` with `IMAGE_TAG=$CI_COMMIT_SHORT_SHA`, `strategy: depend` |
+| Immutability | images built once, pulled by the VMs with a `read_registry` deploy token; the infra side never builds code |
 
 ```mermaid
-sequenceDiagram
-    participant A as Application CI
-    participant R as GitLab Registry
-    participant I as VM infrastructure CI
-    participant V as Frontend and API VMs
-    A->>A: Lint and tests
-    A->>R: Push backend:SHA and frontend:SHA
-    A->>I: Pipeline on main + IMAGE_TAG
-    I->>I: OIDC, Terraform plan/apply
-    I->>V: Ansible through SSH bastion
-    V->>R: Pull with read_registry deploy token
-    I->>V: Check health and readiness
-    I-->>A: Downstream result
+flowchart LR
+    subgraph APP["anime-review-app · GitLab CI"]
+      Q[lint] --> T[unit · integration · coverage] --> B[buildx 2 targets × 2 platforms] --> TR[trigger_infra]
+    end
+    B -->|push| R[(Registry<br/>backend:sha<br/>frontend:sha)]
+    TR -->|IMAGE_TAG| INF["anime-review-infra CI<br/>Terraform → Ansible"]
+    INF -->|SSH via bastion| VM[frontend + backend VMs]
+    VM -->|docker pull| R
 ```
 
-For manual delivery, pass the same `IMAGE_TAG` to Ansible. Do not rebuild images on the VMs. After deployment, test `http://FRONTEND_PUBLIC_IP:3000/health`, then the reader/media workflow. Updating images does not guarantee SQL schema compatibility; handle data changes separately.
+## Recovered pipelines
+
+| File | From commit | Purpose |
+|---|---|---|
+| [`phase2-build.gitlab-ci.yml`](../../docs/ci-history/phase2-build.gitlab-ci.yml) | `ef6d75b` | tests + two-image multi-arch build, no deployment |
+| [`phase2-vm.gitlab-ci.yml`](../../docs/ci-history/phase2-vm.gitlab-ci.yml) | `acb7c59` | same + `trigger_infra` (VM delivery) |
+
+They are exact copies. Keep them under `docs/ci-history/` (they do not run there). To replay phase 2b, select one as **CI/CD configuration file** in a dedicated project or branch **and** activate the infra repository's VM pipeline (`legacy/.gitlab-ci.yml`); the current infra root pipeline configures Kubernetes and ignores `IMAGE_TAG`.
+
+## Prerequisites
+
+- GitLab registry enabled; runner with privileged DinD, access to Docker Hub.
+- In **anime-review-infra**: *Job token permissions* allow this project; the triggering user can run pipelines there; its variables are described in [infra › legacy/vm](https://github.com/Songhai9/anime-review-infra/blob/main/legacy/vm/README.md#gitlab-variables-for-the-pipeline).
+- A deploy token (`read_registry`) stored in the infra Ansible Vault.
+- `registry_image_prefix` in the infra Ansible vars pointing at this project's registry.
+
+## Publish images by hand
+
+```bash
+export REGISTRY_PREFIX=registry.gitlab.com/YOUR_GROUP/YOUR_PROJECT
+export IMAGE_TAG=$(git rev-parse --short=8 HEAD)
+docker login registry.gitlab.com
+docker buildx create --name manga-builder --use 2>/dev/null || docker buildx use manga-builder
+docker buildx build --platform linux/amd64,linux/arm64 --target api-runtime \
+  -t "$REGISTRY_PREFIX/backend:$IMAGE_TAG" --push .
+docker buildx build --platform linux/amd64,linux/arm64 --target frontend-runtime \
+  -t "$REGISTRY_PREFIX/frontend:$IMAGE_TAG" --push .
+docker buildx imagetools inspect "$REGISTRY_PREFIX/backend:$IMAGE_TAG"   # must list arm64
+```
+
+Then deploy that tag with Ansible from the infra repository (`-e image_tag=$IMAGE_TAG`). Check `http://<frontend-public-ip>:3000/health` and a real write through the UI.
+
+Never overwrite a tag that has been delivered: the SHA tag is the link between a commit and what runs.

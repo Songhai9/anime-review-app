@@ -1,13 +1,7 @@
-# Sources and scope
+# Sources
 
-Revision checked on September 29, 2026: `e71a2ad909b0c90219780278611973a395ba2eb4`.
+[Home](../README.md)
 
-The READMEs describe the code at this revision. GitLab settings, the AWS account and running resources were not audited or modified for this delivery. Examples are supplementary templates to fill in; historical CI copies are identified separately.
+Documentation written against commit `d3c73e563bbb87d2f544546d6e0ebc6151ced4b2` (September 29, 2026) of this repository, and against the infra (`fb32548`) and k8s (`4089f92`) repositories. Deployment commands are derived from the code; GitLab settings and the AWS account were not inspected.
 
-- [`.env.example`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/.env.example)
-- [`.github/workflows/ci.yml`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/.github/workflows/ci.yml)
-- [`.gitlab-ci.yml`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/.gitlab-ci.yml)
-- [`Dockerfile`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/Dockerfile)
-- [`compose.test.yml`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/compose.test.yml)
-- [`docker-compose.yaml`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/docker-compose.yaml)
-- [`package.json`](https://github.com/Songhai9/anime-review-app/blob/e71a2ad909b0c90219780278611973a395ba2eb4/package.json)
+Historical pipelines in `docs/ci-history/` are byte-for-byte copies of `.gitlab-ci.yml` at commits `1d94082`, `ef6d75b` and `acb7c59`.
